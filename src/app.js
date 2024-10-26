@@ -1,22 +1,33 @@
-require('dotenv').config();
 const express = require('express');
-// const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
-const orderRoutes = require('./app/routes/orderRoutes');
-const errorHandler = require('./frameworks/middleware/errorHandler');
-const connectDB = require('./frameworks/database/db');
-const { PORT } = require('./frameworks/environment');
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+const authRoutes = require('./routes/authRoutes');
+const patientRoutes = require('./routes/patientRoutes');
+const appointmentRoutes = require('./routes/appointmentRoutes');
+// Load environment variables from a .env file
+dotenv.config();
 
+// Create an instance of the Express application
 const app = express();
-app.use(bodyParser.json());
 
-connectDB();
+// Middleware to parse incoming JSON requests
+app.use(express.json());
 
-app.use('/orders', orderRoutes);
+// Define routes for the application
+// Route for authentication-related requests
+app.use('/api/auth', authRoutes);
 
-app.use(errorHandler);
+// Route for patient management-related requests
+app.use('/api/patients', patientRoutes);
 
-// const PORT = PORT;
-app.listen(PORT, () => {
-    console.log(`🚀 Server is running on port ${PORT}`);
-});
+// Route for appointment management-related requests
+app.use('/api/appointments', appointmentRoutes);
+
+// Connect to MongoDB using Mongoose
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() =>
+        app.listen(process.env.PORT, () => console.log(`Server running on port ${process.env.PORT}`))
+    )
+    .catch((error) =>
+        console.error(error.message)
+    );
